@@ -29,28 +29,12 @@ public class ProductServiceImpl implements ProductService {
 				productRestModel.getTitle(), 
 				productRestModel.getPrice(),
 				productRestModel.getQuantity());
-		//kafkaTemplate send template: topic name, message key, and event object
-		//send messages asynchronously
-//		CompletableFuture<SendResult<String, ProductCreatedEvent>> future = 
-//				kafkaTemplate.send("product-created-events-topic", productId, productCreatedEvent);
-//		//handle the result using whenComplete method
-//		future.whenComplete((result, exception) -> {
-//			if (exception != null) {
-//				LOGGER.error("****** Failed to send message: " + exception.getMessage());
-//			} else {
-//				LOGGER.info("****** Message sent successfully: " + result.getRecordMetadata());
-//			}
-//		});
-		
-		// This method will block the current thread until the future is complete
-		// it will become synchronous
-		//future.join();
 		
 		LOGGER.info("Before publishing a ProductCreatedEvent");
 		
 		//send message synchronously
 		SendResult<String, ProductCreatedEvent> result = 
-				kafkaTemplate.send("product-created-events-topic", productId, productCreatedEvent).get();
+				kafkaTemplate.send("topic2", productId, productCreatedEvent).get();
 		LOGGER.info("Partition: " + result.getRecordMetadata().partition());
 		LOGGER.info("Topic: " + result.getRecordMetadata().topic());
 		LOGGER.info("Offset: " + result.getRecordMetadata().offset());
