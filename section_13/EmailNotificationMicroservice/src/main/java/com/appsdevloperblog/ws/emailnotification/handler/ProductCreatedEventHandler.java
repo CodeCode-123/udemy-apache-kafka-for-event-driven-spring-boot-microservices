@@ -17,19 +17,20 @@ import com.appsdevloperblog.ws.emailnotification.error.NotRetryableException;
 import com.appsdevloperblog.ws.emailnotification.error.RetryableException;
 
 @Component
-@KafkaListener(topics="product-created-events-topic")
+@KafkaListener(topics = "product-created-events-topic")
 public class ProductCreatedEventHandler {
-	
+
 	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	private RestTemplate restTemplate;
-	
+
 	public ProductCreatedEventHandler(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
-	
+
 	@KafkaHandler
 	public void handle(ProductCreatedEvent productCreatedEvent) {
-		LOGGER.info("Received a new event: " + productCreatedEvent.getTitle());		
+		LOGGER.info("Received a new event: " + productCreatedEvent.getTitle() + " with productId: "
+				+ productCreatedEvent.getProductId());
 		String requestUrl = "http://localhost:8082/response/200";
 		try {
 			ResponseEntity<String> response = restTemplate.exchange(requestUrl, HttpMethod.GET, null, String.class);
@@ -37,11 +38,12 @@ public class ProductCreatedEventHandler {
 				LOGGER.info("Received response from a remote service: " + response.getBody());
 			}
 		} catch (ResourceAccessException ex) {
-			//if remote microservice is not available, throw a retry exception
+			// if remote microservice is not available, throw a retry exception
 			LOGGER.error(ex.getMessage());
-			throw new RetryableException(ex);	
+			throw new RetryableException(ex);
 		} catch (HttpServerErrorException ex) {
-			//if the remote microservice responds with 500 error, throw a not retry exception
+			// if the remote microservice responds with 500 error, throw a not retry
+			// exception
 			LOGGER.error(ex.getMessage());
 			throw new NotRetryableException(ex);
 		} catch (Exception ex) {
