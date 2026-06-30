@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.Uuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +35,21 @@ public class ProductServiceImpl implements ProductService {
 		
 		LOGGER.info("Before publishing a ProductCreatedEvent");
 		
+		//ProducerRecorder accept message header as a parameter
+		ProducerRecord<String, ProductCreatedEvent> record = new ProducerRecord<>(
+				"product-created-events-topic",
+				productId,
+				productCreatedEvent);
+		//use message key and message id separately, use product Id as message key
+		//use message Id as another unique identifier included in the message header
+		//and this unique id will be stored in a database to prevent processing and duplicate message
+		record.headers().add("messageId", UUID.randomUUID().toString().getBytes());
+		//hard coded id will generate duplicated id
+		//record.headers().add("messageId", "123".getBytes());
+
 		//send message synchronously
 		SendResult<String, ProductCreatedEvent> result = 
-				kafkaTemplate.send("product-created-events-topic", productId, productCreatedEvent).get();
+				kafkaTemplate.send(record).get();
 		LOGGER.info("Partition: " + result.getRecordMetadata().partition());
 		LOGGER.info("Topic: " + result.getRecordMetadata().topic());
 		LOGGER.info("Offset: " + result.getRecordMetadata().offset());
