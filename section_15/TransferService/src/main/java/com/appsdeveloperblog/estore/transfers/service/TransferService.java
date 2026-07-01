@@ -4,4 +4,5 @@ import com.appsdeveloperblog.estore.transfers.model.TransferRestModel;
 
 public interface TransferService {
     public boolean transfer(TransferRestModel productPaymentRestModel);
+	//public <T> boolean transfer(TransferRestModel transferRestModel);
 }
