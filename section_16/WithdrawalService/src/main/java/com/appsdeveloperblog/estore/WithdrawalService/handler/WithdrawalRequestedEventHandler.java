@@ -6,7 +6,6 @@ import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-
 import com.appsdeveloperblog.payments.ws.core.events.WithdrawalRequestedEvent;
 
 @Component
@@ -14,7 +13,7 @@ import com.appsdeveloperblog.payments.ws.core.events.WithdrawalRequestedEvent;
 public class WithdrawalRequestedEventHandler {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    @KafkaHandler
+    @KafkaHandler(isDefault = true)
     public void handle(@Payload WithdrawalRequestedEvent withdrawalRequestedEvent) {
         LOGGER.info("Received a new withdrawal event: {} ", withdrawalRequestedEvent.getAmount());
     }
