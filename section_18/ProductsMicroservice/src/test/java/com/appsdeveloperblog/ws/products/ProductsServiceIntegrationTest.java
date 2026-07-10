@@ -18,58 +18,56 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.condition.EmbeddedKafkaCondition;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.appsdeveloperblog.ws.products.rest.CreateProductRestModel;
 import com.appsdeveloperblog.ws.products.service.ProductService;
-import com.appsdeveloperblog.ws.products.service.ProductServiceImpl;
 import com.appsdevloperblog.ws.core.ProductCreatedEvent;
 
-@ActiveProfiles("test") 
-@EmbeddedKafka(topics = KafkaTemplateTests.TEMPLATE_TOPIC)
-@SpringBootTest
-public class ProductsServiceIntegrationTest2 {
-	
-	public static final String TEMPLATE_TOPIC = "product-created-events-topic-name";
+@SpringJUnitConfig
+@DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test") // application-test.properties
+//@EmbeddedKafka(partitions=3, count=3, controlledShutdown=true)
+@EmbeddedKafka(partitions=3, topics = { "product-created-events-topic" })
+@SpringBootTest(properties="spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}")
+//@SpringBootTest
+public class ProductsServiceIntegrationTest {
 	
 	@Autowired
-	 ProductServiceImpl productService;
+	private ProductService productService;
 	
-	public static EmbeddedKafkaBroker embeddedKafka;
+	@Autowired
+	private EmbeddedKafkaBroker embeddedKafkaBroker;
 	
+	@Autowired
+	Environment environment;
 	
-	private static KafkaMessageListenerContainer<Integer, String> container;
-	private static BlockingQueue<ConsumerRecord<String, ProductCreatedEvent>> records;
+	private KafkaMessageListenerContainer<String, ProductCreatedEvent> container;
+	private BlockingQueue<ConsumerRecord<String, ProductCreatedEvent>> records;
 	
 	@BeforeAll
-	public static void setUp() {
-		embeddedKafka = EmbeddedKafkaCondition.getBroker();
-		embeddedKafka.brokerProperties(getConsumerProperties());
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "testT", false);
-		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
+	void setUp() {
+		DefaultKafkaConsumerFactory<String, Object> consumerFactory = new DefaultKafkaConsumerFactory<>(getConsumerProperties());
 		
-		ContainerProperties containerProperties = new ContainerProperties("product-created-events-topic-name");
+		ContainerProperties containerProperties = new ContainerProperties(environment.getProperty("product-created-events-topic-name"));
 		container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
 		records = new LinkedBlockingQueue<>();
 		container.setupMessageListener((MessageListener<String, ProductCreatedEvent>) records::add);
 		container.start();
-		ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
+		ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic());
 		
 	}
 
@@ -87,7 +85,8 @@ public class ProductsServiceIntegrationTest2 {
 		createProductRestModel.setQuantity(quantity);
 		createProductRestModel.setTitle(title);
 		
-		// Act
+		// Act 
+		
 		productService.createProduct(createProductRestModel);
 		
 		
@@ -102,19 +101,19 @@ public class ProductsServiceIntegrationTest2 {
 	}
 	
 	
-	private static Map<String, String> getConsumerProperties() {
-		return Map.of(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafka.getBrokersAsString(),
-				ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),
-				ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class.getName(),
-				ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JacksonJsonDeserializer.class.getName(),
-				ConsumerConfig.GROUP_ID_CONFIG, "product-created-events",
-				JacksonJsonDeserializer.TRUSTED_PACKAGES, "com.appsdeveloperblog.ws.core",
-				ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"
+	private Map<String, Object> getConsumerProperties() {
+		return Map.of(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaBroker.getBrokersAsString(),
+				ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+				ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
+				ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JacksonJsonDeserializer.class,
+				ConsumerConfig.GROUP_ID_CONFIG, environment.getProperty("spring.kafka.consumer.group-id"),
+				JacksonJsonDeserializer.TRUSTED_PACKAGES, environment.getProperty("spring.kafka.consumer.properties.spring.json.trusted.packages"),
+				ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, environment.getProperty("spring.kafka.consumer.auto-offset-reset")
 				);
 	}
 	
 	@AfterAll
-	public static void tearDown() {
+	void tearDown() {
 		container.stop();
 	}
 	

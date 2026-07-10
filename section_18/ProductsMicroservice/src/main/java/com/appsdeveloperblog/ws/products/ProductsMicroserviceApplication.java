@@ -2,11 +2,9 @@ package com.appsdeveloperblog.ws.products;
 
 import org.springframework.boot.SpringApplication;
 
-
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
 
 import com.appsdeveloperblog.ws.products.service.ProductServiceImpl;
 import com.appsdevloperblog.ws.core.ProductCreatedEvent;
@@ -16,16 +14,6 @@ public class ProductsMicroserviceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ProductsMicroserviceApplication.class, args);
-	}
-	
-	@Bean(name="productCreatedEvent")
-	ProductCreatedEvent getProductCreatedEvent() {
-		return new ProductCreatedEvent();
-	}
-	
-	@Bean(name="kafkaTemplate")
-	KafkaTemplate<String, ProductCreatedEvent> getKafkaTemplate(ProducerFactory producerFactory) {
-		return new KafkaTemplate<>(producerFactory);
 	}
 	
 	@Bean(name="productServiceImpl")

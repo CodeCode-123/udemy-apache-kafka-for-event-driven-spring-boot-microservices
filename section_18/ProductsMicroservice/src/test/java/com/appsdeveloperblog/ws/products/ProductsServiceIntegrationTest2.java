@@ -43,13 +43,13 @@ import com.appsdevloperblog.ws.core.ProductCreatedEvent;
 
 @ActiveProfiles("test") 
 @EmbeddedKafka(topics = KafkaTemplateTests.TEMPLATE_TOPIC)
-@SpringBootTest
+//@SpringBootTest(classes=ProductsMicroserviceApplication.class)
 public class ProductsServiceIntegrationTest2 {
 	
-	public static final String TEMPLATE_TOPIC = "product-created-events-topic-name";
+	 public static final String TEMPLATE_TOPIC = "product-created-events-topic-name";
 	
 	@Autowired
-	 ProductServiceImpl productService;
+	 ProductService productService;
 	
 	public static EmbeddedKafkaBroker embeddedKafka;
 	
