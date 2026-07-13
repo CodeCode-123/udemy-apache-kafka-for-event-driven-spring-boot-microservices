@@ -5,6 +5,7 @@ import com.appsdeveloperblog.payments.dao.jpa.entity.PaymentEntity;
 import com.appsdeveloperblog.payments.dao.jpa.repository.PaymentRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -23,6 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
         this.ccpRemoteService = ccpRemoteService;
     }
 
+    @Transactional
     @Override
     public Payment process(Payment payment) {
         BigDecimal totalPrice = payment.getProductPrice()
@@ -30,7 +32,7 @@ public class PaymentServiceImpl implements PaymentService {
         ccpRemoteService.process(new BigInteger(SAMPLE_CREDIT_CARD_NUMBER), totalPrice);
         PaymentEntity paymentEntity = new PaymentEntity();
         BeanUtils.copyProperties(payment, paymentEntity);
-        paymentRepository.save(paymentEntity);
+        paymentRepository.saveAndFlush(paymentEntity);
 
         var processedPayment = new Payment();
         BeanUtils.copyProperties(payment, processedPayment);

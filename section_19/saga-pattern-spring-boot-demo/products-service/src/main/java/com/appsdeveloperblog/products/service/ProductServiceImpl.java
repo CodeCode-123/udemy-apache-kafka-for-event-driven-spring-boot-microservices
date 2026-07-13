@@ -6,6 +6,7 @@ import com.appsdeveloperblog.products.dao.jpa.entity.ProductEntity;
 import com.appsdeveloperblog.products.dao.jpa.repository.ProductRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
+    @Transactional
     @Override
     public Product reserve(Product desiredProduct, UUID orderId) {
         ProductEntity productEntity = productRepository.findById(desiredProduct.getId()).orElseThrow();
@@ -27,7 +29,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productEntity.setQuantity(productEntity.getQuantity() - desiredProduct.getQuantity());
-        productRepository.save(productEntity);
+        productRepository.saveAndFlush(productEntity);
 
         var reservedProduct = new Product();
         BeanUtils.copyProperties(productEntity, reservedProduct);
@@ -35,13 +37,15 @@ public class ProductServiceImpl implements ProductService {
         return reservedProduct;
     }
 
+    @Transactional
     @Override
     public void cancelReservation(Product productToCancel, UUID orderId) {
         ProductEntity productEntity = productRepository.findById(productToCancel.getId()).orElseThrow();
         productEntity.setQuantity(productEntity.getQuantity() + productToCancel.getQuantity());
-        productRepository.save(productEntity);
+        productRepository.saveAndFlush(productEntity);
     }
 
+    @Transactional
     @Override
     public Product save(Product product) {
         ProductEntity productEntity = new ProductEntity();

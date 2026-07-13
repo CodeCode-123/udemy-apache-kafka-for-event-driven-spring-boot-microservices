@@ -1,7 +1,8 @@
 services:
   kafka-1:
-    #image: 'bitnami/kafka:3.3.2'
-    image: 'soldevelo/kafka:latest'
+    #image: 'bitnami/kafka:latest'
+    #image: 'soldevelo/kafka:latest'
+    image: 'bitnamilegacy/kafka:3.3.2'
     container_name: kafka-1
     environment:
       # KRaft settings
@@ -21,8 +22,9 @@ services:
       - ../kafka-volumes/server-1:/soldevelo/kafka
 
   kafka-2:
-    #image: 'bitnami/kafka:3.3.2'
-    image: 'soldevelo/kafka:latest'
+    #image: 'bitnami/kafka:latest'
+    #image: 'soldevelo/kafka:latest'
+    image: 'bitnamilegacy/kafka:3.3.2'
     container_name: kafka-2
     environment:
       # KRaft settings
@@ -42,8 +44,9 @@ services:
       - ../kafka-volumes/server-2:/soldevelo/kafka
 
   kafka-3:
-    #image: 'bitnami/kafka:3.3.2'
-    image: 'soldevelo/kafka:latest'
+    #image: 'bitnami/kafka:latest'
+    #image: 'soldevelo/kafka:latest'
+    image: 'bitnamilegacy/kafka:3.3.2'
     container_name: kafka-3
     environment:
       # KRaft settings

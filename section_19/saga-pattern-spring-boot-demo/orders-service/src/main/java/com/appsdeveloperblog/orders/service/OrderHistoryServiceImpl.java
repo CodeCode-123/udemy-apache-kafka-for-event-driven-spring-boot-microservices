@@ -6,6 +6,7 @@ import com.appsdeveloperblog.orders.dao.jpa.repository.OrderHistoryRepository;
 import com.appsdeveloperblog.orders.dto.OrderHistory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -20,13 +21,14 @@ public class OrderHistoryServiceImpl implements OrderHistoryService {
         this.orderHistoryRepository = orderHistoryRepository;
     }
 
+    @Transactional
     @Override
     public void add(UUID orderId, OrderStatus orderStatus) {
         OrderHistoryEntity entity = new OrderHistoryEntity();
         entity.setOrderId(orderId);
         entity.setStatus(orderStatus);
         entity.setCreatedAt(new Timestamp(new Date().getTime()));
-        orderHistoryRepository.save(entity);
+        orderHistoryRepository.saveAndFlush(entity);
     }
 
     @Override

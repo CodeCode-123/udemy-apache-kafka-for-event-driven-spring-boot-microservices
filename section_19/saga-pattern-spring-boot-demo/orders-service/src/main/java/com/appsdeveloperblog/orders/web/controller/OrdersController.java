@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/orders")
@@ -28,7 +29,7 @@ public class OrdersController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public CreateOrderResponse placeOrder(@RequestBody @Valid CreateOrderRequest request) {
+    public CreateOrderResponse placeOrder(@RequestBody @Valid CreateOrderRequest request) throws ExecutionException, InterruptedException {
         var order = new Order();
         BeanUtils.copyProperties(request, order);
         Order createdOrder = orderService.placeOrder(order);
