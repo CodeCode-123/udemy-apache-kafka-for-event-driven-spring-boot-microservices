@@ -9,6 +9,7 @@
         <artifactId>saga-pattern-spring-boot-demo</artifactId>
         <version>${revision}</version>
     </parent>
+
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

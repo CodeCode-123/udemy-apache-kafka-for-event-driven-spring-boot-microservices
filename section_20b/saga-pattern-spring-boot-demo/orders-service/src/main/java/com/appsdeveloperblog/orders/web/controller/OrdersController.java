@@ -40,7 +40,7 @@ public class OrdersController {
 
     @GetMapping("/{orderId}/history")
     @ResponseStatus(HttpStatus.OK)
-    public List<OrderHistoryResponse> getOrderHistory(@PathVariable UUID orderId) {
+    public List<OrderHistoryResponse> getOrderHistory(@PathVariable("orderId") UUID orderId) {
         return orderHistoryService.findByOrderId(orderId).stream().map(orderHistory -> {
             OrderHistoryResponse orderHistoryResponse = new OrderHistoryResponse();
             BeanUtils.copyProperties(orderHistory, orderHistoryResponse);

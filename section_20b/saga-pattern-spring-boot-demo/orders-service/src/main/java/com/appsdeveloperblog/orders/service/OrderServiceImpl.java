@@ -1,6 +1,7 @@
 package com.appsdeveloperblog.orders.service;
 
 import com.appsdeveloperblog.core.dto.Order;
+import com.appsdeveloperblog.core.dto.events.OrderCreatedEvent;
 import com.appsdeveloperblog.core.types.OrderStatus;
 import com.appsdeveloperblog.orders.dao.jpa.entity.OrderEntity;
 import com.appsdeveloperblog.orders.dao.jpa.repository.OrderRepository;
@@ -9,14 +10,20 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.UUID;
 
 @Service
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
+    //After created the event, publish the event using kafkaTemplate as a wrapper to the broker in a topic
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final String ordersEventsTopicName;
 
-    public OrderServiceImpl(OrderRepository orderRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            KafkaTemplate<String, Object> kafkaTemplate,
+                            @Value("${orders.events.topic.name}") String ordersEventsTopicName) {
         this.orderRepository = orderRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.ordersEventsTopicName = ordersEventsTopicName;
     }
 
     @Override
@@ -27,6 +34,14 @@ public class OrderServiceImpl implements OrderService {
         entity.setProductQuantity(order.getProductQuantity());
         entity.setStatus(OrderStatus.CREATED);
         orderRepository.save(entity);
+
+        OrderCreatedEvent placeOrder = new OrderCreatedEvent(
+                entity.getId(),
+                entity.getCustomerId(),
+                order.getProductId(),
+                order.getProductQuantity()
+        );
+        kafkaTemplate.send(ordersEventsTopicName, placeOrder);
 
         return new Order(
                 entity.getId(),

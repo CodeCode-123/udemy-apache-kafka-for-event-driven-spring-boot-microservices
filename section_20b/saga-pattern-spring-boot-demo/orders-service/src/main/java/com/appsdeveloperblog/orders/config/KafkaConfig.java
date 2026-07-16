@@ -22,13 +22,6 @@ public class KafkaConfig {
     private String ordersEventsTopicName;
     @Value("${products.commands.topic.name}")
     private String productsCommandsTopicName;
-    @Value("${payments.commands.topic.name}")
-    private String paymentsCommandsTopicName;
-    @Value("${orders.commands.topic.name}")
-    private String ordersCommandsTopicName;
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
-
     private final static Integer TOPIC_REPLICATION_FACTOR=3;
     private final static Integer TOPIC_PARTITIONS=3;
 
@@ -38,13 +31,21 @@ public class KafkaConfig {
     }
 
     @Bean
-    ProducerFactory<String, Object> producerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        // Add necessary ProducerConfig properties (bootstrap servers, serializers)
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        return new DefaultKafkaProducerFactory<>(configProps);
+    NewTopic createOrdersEventsTopic() {
+        return TopicBuilder.name(ordersEventsTopicName)
+                .partitions(TOPIC_PARTITIONS)
+                .replicas(TOPIC_REPLICATION_FACTOR)
+                .build();
     }
+
+    @Bean
+    NewTopic createProductsCommandsTopic() {
+        return TopicBuilder.name(productsCommandsTopicName)
+                .partitions(TOPIC_PARTITIONS)
+                .replicas(TOPIC_REPLICATION_FACTOR)
+                .build();
+    }
+
+
 
 }
