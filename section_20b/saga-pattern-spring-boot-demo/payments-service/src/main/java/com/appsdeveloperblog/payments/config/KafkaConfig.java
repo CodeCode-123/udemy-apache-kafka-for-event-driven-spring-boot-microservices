@@ -18,8 +18,21 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    @Value("${payments.commands.topic.name}")
+    private String paymentsEventsTopicName;
+    private final static Integer TOPIC_REPLICATION_FACTOR = 3;
+    private final static Integer TOPIC_PARTITIONS = 3;
+
     @Bean
     KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    NewTopic createPaymentsEventsTopic() {
+        return TopicBuilder.name(paymentsEventsTopicName)
+                .partitions(TOPIC_PARTITIONS)
+                .replicas(TOPIC_REPLICATION_FACTOR)
+                .build();
     }
 }
